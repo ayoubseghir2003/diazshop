@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>diAz Shop</title>
+  <!-- Import de Font Awesome pour les icônes -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+       background-image: url('images/img2.jpg'); /* Path to your image */
+       background-size: cover;                  /* Ensures the image covers the entire body */
+       background-position: center;             /* Centers the image */
+       background-repeat: repeat;            /* Prevents the image from repeating */
+       height: 100vh;                           /* Ensures the background covers the full height */
+       margin: 0;  
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 50px auto;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+
+    /* Page de bienvenue avec logo en arrière-plan */
+    #welcomePage {
+      background-image: url('https://photos.fife.usercontent.google.com/pw/AP1GczNlsk8gSbKTsvSrZJ1biXDQTu5QSrf3nMtTtDW0Xv6dfhy-b_9b-HU=w110-h220-no?authuser=0'); /* Remplacer par votre logo */
+      background-size: cover;
+      background-position: center;
+      padding: 80px 20px;
+      text-align: right;
+      border-radius: 20px;
+      color: rgb(133, 62, 168);
+    }
+
+    h1 {
+      position: absolute;  /* Position relative to the nearest positioned ancestor (or the viewport if none) */
+      top: 70px;              /* Position it at the top of the window */
+      left: 700px;     
+      font-size: 40px;
+      font-family: 'Roboto', sans-serif;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.8); /* Fond légèrement transparent */
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    label {
+      display: inline-block;
+      margin-right: 15px;
+      color: #34495e;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    input[type="text"], input[type="tel"] {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ecf0f1;
+      background-color: #f7f9fc;
+      color: #34495e;
+      margin-top: 5px;
+    }
+
+    input[type="text"]:focus, input[type="tel"]:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    /* Cache la page du menu */
+    #menuPage {
+      display: none;
+    }
+
+    /* Styles du menu */
+    .menu-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      width: 150px;
+      margin: 20px;
+      padding: 15px;
+      background-color: #fef9f9;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+      overflow: hidden;
+    }
+
+    .menu-item img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .menu-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-item .details {
+      margin-top: 10px;
+    }
+
+    .menu-item strong {
+      font-size: 18px;
+      color: #333;
+    }
+
+    .menu-item p {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-top: 5px;
+    }
+
+    .menu-item button {
+      margin-top: 15px;
+      padding: 8px 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    .menu-item button:hover {
+      background-color: #2980b9;
+    }
+
+    .menu-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0;
+      list-style: none;
+    }
+
+    /* Panier */
+    #cart {
+      margin-top: 30px;
+    }
+
+    #cart-items {
+      list-style: none;
+      padding: 0;
+    }
+
+    #cart-items li {
+      padding: 5px 0;
+      font-size: 16px;
+      color: #555;
+    }
+
+    #total-price {
+      font-size: 20px;
+      font-weight: bold;
+      color: #3498db;
+     
+
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Page de bienvenue -->
+    <div id="welcomePage">
+      <img src="images/logo.png" alt="Logo diAzShop" style="position: absolute; top: 50px; left: 280px; max-width: 200px; margin-bottom: 20px;">
+      <h1>Bienvenue sur diAzShop</h1>
+      <p>Veuillez entrer vos informations pour commencer votre commande :</p>
+
+      <div class="form-group">
+        <i class="fas fa-user"></i>
+        <label for="name">Votre nom</label>
+        <input type="text" id="name" placeholder="Votre nom" required>
+      </div>
+
+      <div class="form-group">
+        <i class="fas fa-phone-alt"></i>
+        <label for="phone">Votre numéro de téléphone</label>
+        <input type="tel" id="phone" placeholder="Votre numéro de téléphone" required>
+      </div>
+
+      <div class="form-group">
+        <i class="fas fa-map-marker-alt"></i>
+        <label for="address">Votre adresse</label>
+        <input type="text" id="address" placeholder="Veuillez entrer votre adresse complete" required>
+      </div>
+
+      <button onclick="goToMenu()">Envoyer</button>
+    </div>
+
+    <!-- Page du menu -->
+    <div id="menuPage" class="hidden">
+      <img src="images/logo.png" alt="Logo diAzShop" style="position: absolute; top: 50px; left: 1000px; max-width: 150px; margin-bottom: 20px;">
+      <h2 id="greeting"></h2>
+      <i class="fas fa-bars"></i> Notre Menu
+      <div id="menu" class="menu-list"></div>
+      <div id="cart">
+        <h3>Votre Commande</h3>
+        <ul id="cart-items"></ul>
+        <p>Total: DZA <span id="total-price">0</span></p>
+        <p>Veuillez appuyer sur le bouton " Envoyer la commande " pour confirmer votre commande, puis appuyer sur le bouton " Télécharger en  PDF "  pour que le coursier puisse vérifier votre commande</p>
+        <button onclick="sendOrder()">Envoyer la commande</button>
+        <button onclick="generatePDF()">Télécharger en PDF</button>
+        <button onclick="clearCart()">Effacer la commande</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const menuItems = [
+      { name: 'Soupe kabouya', price: 200, image: 'https://www.modesettravaux.fr/wp-content/uploads/modesettravaux/2022/11/graines-de-courge-614x410.jpg' },
+      { name: 'Soupe basbas', price: 200, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEXkhFsj8YtkraFXl74Sw5e3-vEkha9Bb6wR--VzZAagja5eaH68ozsvq2_L7nChtpyb4&usqp=CAU' },
+      { name: 'Soupe Batata', price: 200, image: 'https://www.cookomix.com/wp-content/uploads/2020/03/veloute-pomme-de-terre-thermomix-800x600.jpg' },
+      { name: 'Soupe des légumes', price: 200, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZjLe-CiYL2rd6WMeCIHjjKb4hDN06UkULJg&s' },
+      { name: 'Soupe des lentiles', price: 200, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOqS2qQprPSZuN2-D_-2aWih3spzS7QnAMMQ&s' },
+      { name: 'Loubia', price: 200, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSoHFpEwm-yCuAqqRj4VhIr32BXib311MochQ&s' },
+      { name: 'Salade Verte', price: 150, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIKO7fwJ7UJchMF_pvF3w5JDtjBbzp3qf9mCJFQRjTCPSJ8kNMBaL-p7rdF-vhoXQFk0I&usqp=CAU' },
+      { name: 'Salade de riz', price: 200, image: 'https://img.cuisineaz.com/1024x576/2024/07/24/i199089-recette-de-salade-de-riz-froide.jpg' },
+      { name: 'Salade César', price: 250, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvi_I_MZLH4emQnnOIomYnzssY7l9BJOiUVA&s' },
+      { name: 'Boîte de frites', price: 150, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTXKPiWNEZ7xj4BT1bhb3PRHrBULZVQCesyg&s' },
+      { name: 'Escalope marinée', price: 150, image: 'https://static.750g.com/images/640-420/2dd6200355ec4ca62815dcd4477fa5a5/bien-manger-se-faire-plaisir-et-garder-la-ligne-c-est-possible.jpg' },
+      { name: 'Escalope avec crème blanche', price: 250, image: 'https://cache.marieclaire.fr/data/photo/w1000_ci/6r/recette-escalopes-poulet-creme-a-la-four-facile.jpg' },
+      { name: 'Plat Mtowam', price: 500, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSD3_T0ji7-D5TojKMTLCHP1wdwrV6_Va8XMQ&s' },
+      { name: 'Chakhchoukha avec cuisse de poulet', price: 800, image: 'https://i.ytimg.com/vi/orFSrK7-vd0/sddefault.jpg' },
+      { name: 'Roulé de poulet haché farci', price: 500, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTi_Zr4hIDnKp0Uji9o3ycSmrOcJTTfd23i9g&s' },
+      { name: 'Couscous avec une cuisse de poulet', price: 800, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXSBOVPazz4ary9HkiWnILpy5SGxgqRTNdeA&s' }
+    ];
+
+    let cart = [];
+    let totalPrice = 0;
+
+    function goToMenu() {
+      const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+
+      if (!name || !phone || !address) {
+        alert("Veuillez remplir tous les champs.");
+        return;
+      }
+
+      console.log("Formulaire envoyé, changement de page...");
+      document.getElementById('welcomePage').style.display = 'none'; // Cacher la page de bienvenue
+      document.getElementById('menuPage').style.display = 'block'; // Afficher la page du menu
+
+      document.getElementById('greeting').textContent = `Bienvenue ${name} !`;
+
+      window.clientInfo = { name, phone, address };
+
+      const menuContainer = document.getElementById('menu');
+      menuItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'menu-item';
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.name}">
+          <div class="details">
+            <strong>${item.name}</strong>
+            <p>Prix: DZA${item.price}</p>
+          </div>
+          <button onclick="addToCart('${item.name}', ${item.price})">Ajouter</button>
+        `;
+        menuContainer.appendChild(div);
+      });
+    }
+
+    function addToCart(item, price) {
+      cart.push({ item, price });
+      totalPrice += price;
+      updateCartDisplay();
+    }
+
+    function updateCartDisplay() {
+      const cartItems = document.getElementById('cart-items');
+      cartItems.innerHTML = '';
+      cart.forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.item} - DZA${entry.price}`;
+        cartItems.appendChild(li);
+      });
+
+      document.getElementById('total-price').textContent = totalPrice;
+    }
+    async function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const name = document.getElementById("name").value;
+        const phone = document.getElementById("phone").value;
+        const address = document.getElementById("address").value;
+
+        doc.text("Résumé de commande - diAzShop", 10, 10);
+        doc.text(`Nom : ${name}`, 10, 20);
+        doc.text(`Téléphone : ${phone}`, 10, 30);
+        doc.text(`Adresse : ${address}`, 10, 40);
+        doc.text("Commande :", 10, 50);
+
+        const items = document.querySelectorAll("#cart-items li");
+        let y = 60;
+        items.forEach(item => {
+        doc.text(item.textContent, 10, y);
+        y += 10;
+        });
+
+        const total = document.getElementById("total-price").textContent;
+        doc.text(`Total : DZA ${total}`, 10, y + 10);
+
+        doc.save("commande_diazshop.pdf");
+    }
+     function clearCart() {
+    // Vider le tableau du panier
+       cart = [];
+       totalPrice = 0;
+
+    // Réinitialiser l'affichage du panier
+       const cartItems = document.getElementById('cart-items');
+       cartItems.innerHTML = '';
+
+    // Réinitialiser le total
+       document.getElementById('total-price').textContent = totalPrice;
+    }
+
+
+    function sendOrder() {
+      const { name, phone, address } = window.clientInfo;
+      const orderDetails = { name, phone, address, cart, totalPrice };
+
+      fetch('/api/submit-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderDetails)
+      })
+      .then(response => response.json())
+      .then(data => alert('Commande envoyée avec succès!'))
+      .catch(error => alert('Erreur lors de l\'envoi de la commande.'));
+    }
+  </script>
+</body>
+</html>
