@@ -1,99 +1,142 @@
+// backend/index.js
 const express = require('express');
-const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const cors = require('cors');
 const path = require('path');
+const nodemailer = require('nodemailer');
+
 const app = express();
 const port = 3000;
 
-// Middleware to handle JSON requests
-app.use(express.json());
+// JWT secret key
+const SECRET_KEY = 'supersecretkey';
 
-// Serve static files (HTML, CSS, JS) from the "public" directory
+// In-memory orders and users (demo purposes)
+let orders = [
+  { id: '1', client: 'Ahmed', address: 'Algiers', total: 1000, status: 'pending' },
+  { id: '2', client: 'Khadija', address: 'Oran', total: 750, status: 'pending' },
+];
+
+let USERS = []; // Will hold { phone, username }
+
+// Middleware
+app.use(express.json());
+app.use(cors()); // Allow all origins for development. Customize for production.
 app.use(express.static('public'));
 app.use('/static', express.static(path.join(__dirname, 'static')));
 
-// Menu items (hardcoded for this example)
-const menuItems = [
-  { name: 'Soupe kabouya', price: 200 },
-  { name: 'Soupe basbas', price: 200 },
-  { name: 'Soupe Batata', price: 200 },
-  { name: 'Soupe des légumes', price: 200 },
-  { name: 'Soupe des lentiles', price: 200 },
-  { name: 'Loubia', price: 200 },
-  { name: 'Salade Verte', price: 150 },
-  { name: 'Salade de riz', price: 200 },
-  { name: 'Salade César', price: 250 },
-  { name: 'Boîte de frites', price: 150 },
-  { name: 'Escalope marinée', price: 150 },
-  { name: 'Escalope avec crème blanche', price: 250 },
-  { name: 'Boîte de riz "Basmati"', price: 200 },
-  { name: 'Plat Mtowam', price: 500 },
-  { name: 'Chatitha lham', price: 500 },
-  { name: 'Loubia machto sauce rouge', price: 500 },
-  { name: 'Roule de poulet haché farci avec des épinards et fromage', price: 450 },
-  { name: 'Couscous avec une cuisse de poulet ', price: 800 },
-  { name: 'Rachta avec une cuisse de poulet', price: 800 },
-  { name: 'Chakhchoukha avec cuisse de poulet', price: 800 }
-];
+// --- LOGIN WITH PHONE NUMBER ---
+app.post('/login', (req, res) => {
+  const { phone, username } = req.body;
+  if (!phone || !username) {
+    return res.status(400).json({ message: 'Phone number and username are required' });
+  }
 
-// Route to serve the homepage (menu page)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  let user = USERS.find(u => u.phone === phone);
+  if (!user) {
+    user = { phone, username };
+    USERS.push(user);
+  }
+
+  // Create token
+  const token = jwt.sign({ phone, username }, SECRET_KEY, { expiresIn: '2h' });
+  res.json({ token });
 });
 
-// Route to get the menu items
-app.get('/api/menu', (req, res) => {
-  res.json(menuItems);
+// --- AUTH MIDDLEWARE ---
+const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: 'No authorization header provided' });
+
+  const token = authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Token missing from header' });
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded; // Store user info for later if needed
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: 'Invalid or expired token' });
+  }
+};
+
+// --- GET ORDERS ---
+app.get('/orders', authenticate, (req, res) => {
+  res.json(orders);
 });
 
-// Handle order submission
+// --- UPDATE ORDER STATUS ---
+app.post('/orders/:id/status', authenticate, (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const order = orders.find(o => o.id === id);
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' });
+  }
+
+  if (!status) {
+    return res.status(400).json({ message: 'Status is required' });
+  }
+
+  order.status = status;
+  res.json({ message: `Order ${id} status updated to "${status}"` });
+});
+
+// --- SUBMIT ORDER (EMAIL) ---
 app.post('/api/submit-order', (req, res) => {
-  const { name, phone, address, cart, totalPrice } = req.body;
+  const { name, phone, address, cart, totalPrice, deliveryPrice } = req.body;
 
-  // Log the received order details to the server console
-  console.log('Order Details:', { name, phone, address, cart, totalPrice });
+  if (!name || !phone || !address || !cart || totalPrice == null || deliveryPrice == null) {
+    return res.status(400).json({ message: 'Missing order details' });
+  }
 
-  // Setup nodemailer to send the email
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'seghirayoub488@gmail.com',  // Replace with your Gmail address
-      pass: 'gsmb iquf maok rryu' // Replace with your Gmail app-specific password
-    }
+      user: 'seghirayoub488@gmail.com',
+      pass: 'gsmb iquf maok rryu', // WARNING: Store securely using env variables!
+    },
   });
 
-  // Email content
   const mailOptions = {
-    from: 'seghirayoub488@gmail.com',  // Replace with your Gmail address
-    to: 'seghirayoub488@gmail.com',    // Replace with the email where you want to receive the orders
+    from: 'seghirayoub488@gmail.com',
+    to: 'seghirayoub488@gmail.com',
     subject: 'New Order Received',
     text: `
-      You have a new order!
+New Order:
+Name: ${name}
+Phone: ${phone}
+Address: ${address}
 
-      Name: ${name}
-      Phone: ${phone}
-      Address: ${address}
+Items:
+${cart.map(item => `${item.name} - DZA${item.price}`).join('\n')}
 
-      Ordered items:
-      ${cart.map(item => `${item.name} - DZA${item.price}`).join('\n')}
-
-      Total: DZA${totalPrice}
-    `
+Total: DZA${totalPrice}
+Delivery: DZA${deliveryPrice}
+    `,
   };
 
-  // Send the email using Nodemailer
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error('Error sending email:', error);
-      return res.status(500).send('Error sending the order email.');
+      console.error('Email error:', error);
+      return res.status(500).json({ message: 'Failed to send email', error });
     }
-    console.log('Email sent:', info.response);
 
-    // If email is sent successfully, send the response back to the frontend
-    res.status(200).json({ message: 'Order successfully received!' });
+    const newOrder = {
+      id: String(Date.now()),
+      client: name,
+      address,
+      total: totalPrice + deliveryPrice,
+      status: 'pending',
+    };
+    orders.push(newOrder);
+
+    res.status(200).json({ message: 'Order received!' });
   });
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+// --- SERVER START ---
+app.listen(3000, '0.0.0.0', () => {
+  console.log('Server running on port 3000');
 });
